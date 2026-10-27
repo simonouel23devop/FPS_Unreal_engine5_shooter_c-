@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "Shooter_character.generated.h"
 
+class UInputAction;
+class UCombatComponent;
 class UCameraComponent;
 class USpringArmComponent;
 class USkeletalMeshComponent;
@@ -22,11 +24,25 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 protected:
-	// Called when the game starts or when spawned
+	
 	virtual void BeginPlay() override;
 
 private:
 	// ARMS 1p
+	// cycle - reload - fireweapons press/release - aiming press-release
+	void Input_CycleWeapon();
+	void Input_ReloadWeapon();
+	void Input_FireWeapon_Pressed();
+	void Input_FireWeapon_Released();
+	void Input_Aim_Pressed();
+	void Input_Aim_Released();
+	
+	
+	
+	
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<UCombatComponent> Combat;
+	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> Mesh1P;
 	
@@ -36,7 +52,15 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UCameraComponent> FirstPersonCamera;
 	
+	UPROPERTY(EditAnywhere, Category= "FPS_Input");
+	TObjectPtr<UInputAction> CycleWeaponAction;
 	
+	UPROPERTY(EditAnywhere, Category= "FPS_Input");
+	TObjectPtr<UInputAction> FireWeaponAction;
 	
+	UPROPERTY(EditAnywhere, Category= "FPS_Input");
+	TObjectPtr<UInputAction> ReloadWeaponAction;
 	
+	UPROPERTY(EditAnywhere, Category= "FPS_Input");
+	TObjectPtr<UInputAction> AimWeaponAction;
 };

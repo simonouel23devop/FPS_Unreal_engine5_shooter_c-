@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -38,9 +38,20 @@ private:
 	UPROPERTY(EditAnywhere, Category= "FPS_Input");
 	TObjectPtr<UInputAction> JumpAction;
 
+	UPROPERTY(EditAnywhere, Category= "FPS_Input");
+	TObjectPtr<UInputAction> RunAction;
+
+	UPROPERTY(EditAnywhere, Category= "FPS_Input");
+	float NormalWalkSpeed = 900.0f;
+
+	UPROPERTY(EditAnywhere, Category= "FPS_Input");
+	float RunSpeed = 1200.0f;
+
 	void Input_Crouch();
 	void Input_Jump();
 	void Input_StopJumping();
+	void Input_Run();
+	void Input_StopRunning();
 	void Input_Move(const FInputActionValue& InputActionValue);
 	void Input_Look(const FInputActionValue& InputActionValue);
 };
