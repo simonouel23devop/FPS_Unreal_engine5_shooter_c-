@@ -1,8 +1,9 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Simon fps project
 
 
 #include "Weapon.h"
 
+#include "PlayerInterface.h"
 #include "Camera/CameraComponent.h"
 
 AWeapon::AWeapon()
@@ -13,7 +14,7 @@ AWeapon::AWeapon()
 	bNetUseOwnerRelevancy = true;
 
 
-	// mesh 1p visibility in game
+	// mesh 1p visibility in game for weapons
 	
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(FName("Mesh1P"));
 	Mesh1P->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;
@@ -24,7 +25,7 @@ AWeapon::AWeapon()
 	
 	
 	
-	// mesh visibility in game
+	// mesh visibility in game for weapons
 	
 	Mesh3P = CreateDefaultSubobject<USkeletalMeshComponent>(FName("Mesh3P"));
 	Mesh3P->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::OnlyTickPoseWhenRendered;	
@@ -36,14 +37,22 @@ AWeapon::AWeapon()
 	
 }
 
-USkeletalMeshComponent* AWeapon::GetMesh1P() const
+void AWeapon::OnRep_Instigator()
+{
+	Super::OnRep_Instigator();
+	AttachToOwningPawn();
+	
+	
+}
+
+USkeletalMeshComponent* AWeapon::GetMesh1P() const  // for mesh1p
 {
 	return Mesh1P;
 	
 	
 }
 
-USkeletalMeshComponent* AWeapon::GetMesh3P() const
+USkeletalMeshComponent* AWeapon::GetMesh3P() const // for mesh3p
 {
 	
 	return Mesh3P;
@@ -53,6 +62,44 @@ USkeletalMeshComponent* AWeapon::GetMesh3P() const
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	
+}
+
+void AWeapon::AttachToOwningPawn() const // attach grip point weapons to player
+{
+	
+	APawn* OwningPawn = GetInstigator();
+	if (!IsValid(OwningPawn) || !OwningPawn->Implements<UPlayerInterface>()) return;
+	
+	SetMeshVisibilies(OwningPawn);
+	
+	
+	const FName AttachPoint = IPlayerInterface::Execute_GetWeaponAttachPoint(OwningPawn, WeaponType);
+	USkeletalMeshComponent* PawnMesh1P = IPlayerInterface::Execute_GetMesh1P(OwningPawn);
+	USkeletalMeshComponent* PawnMesh3P = IPlayerInterface::Execute_GetMesh3P(OwningPawn);
+	
+	Mesh1P->AttachToComponent(PawnMesh1P, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+	Mesh3P->AttachToComponent(PawnMesh3P, FAttachmentTransformRules::KeepRelativeTransform, AttachPoint);
+	
+	
+	
+}
+
+void AWeapon::SetMeshVisibilies(APawn* OwningPawn) const
+{
+	if (OwningPawn->IsLocallyControlled())
+		
+	{
+		Mesh1P->SetHiddenInGame(false);
+		Mesh3P->SetHiddenInGame(true);
+	}
+	else
+	{
+		Mesh1P->SetHiddenInGame(true);
+		Mesh3P->SetHiddenInGame(false);
+		
+	}
+	
 	
 }
 

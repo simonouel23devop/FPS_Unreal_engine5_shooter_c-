@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "PlayerInterface.h"
 #include "GameFramework/Character.h"
 #include "Shooter_character.generated.h"
 
@@ -15,7 +16,7 @@ class USkeletalMeshComponent;
 
 
 UCLASS()
-class FPS_API AShooter_character : public ACharacter
+class FPS_API AShooter_character : public ACharacter , public IPlayerInterface
 {
 	GENERATED_BODY()
 
@@ -23,10 +24,22 @@ public:
 	AShooter_character();
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PossessedBy(AController* NewController) override;
+	
+	
+	
 protected:
 	
 	virtual void BeginPlay() override;
 
+	// player interface
+	virtual FName GetWeaponAttachPoint_Implementation(const FGameplayTag& WeaponType) const override;
+	virtual USkeletalMeshComponent* GetMesh1P_Implementation() const override;
+	virtual USkeletalMeshComponent* GetMesh3P_Implementation() const override;
+	
+	
+	
+	
 private:
 	// ARMS 1p
 	// cycle - reload - fireweapons press/release - aiming press-release

@@ -15,5 +15,5 @@ class FPS_API UWeaponData : public UDataAsset
 public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "FPS_WeaponsData_Weapons")
-	TMap<FGameplayTag, FName> GripPoints;
+	TMap<FGameplayTag, FName> GripPoints; // gameplay tags
 };

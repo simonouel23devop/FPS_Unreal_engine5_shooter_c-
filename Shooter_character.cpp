@@ -1,8 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// simon project
 
 
 #include "Shooter_character.h"
-
 #include "CombatComponent.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
@@ -28,7 +27,7 @@ AShooter_character::AShooter_character()
 	FirstPersonCamera->SetupAttachment(SpringArm);
 	FirstPersonCamera->bUsePawnControlRotation = false;
 
-	// arms mesh1p behind
+	// arms mesh 1p behind
 	Mesh1P = CreateDefaultSubobject<USkeletalMeshComponent>(FName("Mesh1P"));
 	Mesh1P->SetupAttachment(FirstPersonCamera);
 	Mesh1P->bOnlyOwnerSee = true;
@@ -53,7 +52,25 @@ void AShooter_character::BeginPlay()
 	Super::BeginPlay();
 	GetCharacterMovement()->MaxWalkSpeed = 900.0f;
 }
+// Gameplay tag for weapons grip point
+FName AShooter_character::GetWeaponAttachPoint_Implementation(const FGameplayTag& WeaponType) const
+{
+	checkf(Combat->WeaponData, TEXT("No weapon data asset , please fill out bp_shooter_character"));
+	return Combat->WeaponData->GripPoints.FindChecked(WeaponType);
+	
+	
+	
+}
 
+USkeletalMeshComponent* AShooter_character::GetMesh1P_Implementation() const
+{
+	return Mesh1P;
+}
+
+USkeletalMeshComponent* AShooter_character::GetMesh3P_Implementation() const
+{
+	return GetMesh();
+}
 
 
 // Called every frame
@@ -78,6 +95,16 @@ void AShooter_character::SetupPlayerInputComponent(UInputComponent* PlayerInputC
 
 }
 
+void AShooter_character::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	if (IsValid(Combat))
+	{
+		Combat->SpawnInventory();
+	}
+	
+}
+
 void AShooter_character::Input_CycleWeapon()
 {
 	if (!Combat)
@@ -95,7 +122,7 @@ void AShooter_character::Input_ReloadWeapon()
 		return;
 	}
 
-	Combat->initiate_ReloadWeapon();
+	Combat->Initiate_ReloadWeapon();
 }
 
 void AShooter_character::Input_FireWeapon_Pressed()
@@ -125,7 +152,7 @@ void AShooter_character::Input_Aim_Pressed()
 		return;
 	}
 
-	Combat->initiate_Aim_Pressed();
+	Combat->Initiate_Aim_Pressed();
 }
 
 void AShooter_character::Input_Aim_Released()
@@ -135,5 +162,5 @@ void AShooter_character::Input_Aim_Released()
 		return;
 	}
 
-	Combat->initiate_Aim_Released();
+	Combat->Initiate_Aim_Released();
 }

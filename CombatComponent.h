@@ -3,9 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Weapon.h"
+#include "WeaponData.h"
 #include "Components/ActorComponent.h"
 #include "CombatComponent.generated.h"
 
+
+class AWeapon;
+class UWeaponData;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class FPS_API UCombatComponent : public UActorComponent
@@ -15,6 +20,7 @@ class FPS_API UCombatComponent : public UActorComponent
 public:
 	UCombatComponent();	
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	
 	// Cycle to the weapons when switch in the inventory.
@@ -23,19 +29,36 @@ public:
 	void Initiate_RunAction();
 	void Initiate_FireWeapons_Pressed(); // press triggers mouse
 	void Initiate_FireWeapons_Released(); // release triggers mouse
-	void initiate_ReloadWeapon(); // reloading the weapons
-	void initiate_Aim_Pressed(); // aiming press
-	void initiate_Aim_Released(); // aiming release
+	void Initiate_ReloadWeapon(); // reloading the weapons
+	void Initiate_Aim_Pressed(); // aiming press
+	void Initiate_Aim_Released(); // aiming release
+	
+	UPROPERTY(EditDefaultsOnly, Category= "FPS_Weapon")
+	TObjectPtr<UWeaponData> WeaponData;
 	
 	
+	void SpawnInventory();
+	void DestroyInventory();
 	
 	
 
 protected:
 	
 	
+	
+	
+	
+	
 private:
 	
+	UPROPERTY(Transient, Replicated)
+	TArray<AWeapon*> Inventory;
 	
-            
+	UPROPERTY(EditDefaultsOnly , Category= "FPS_Weapon")
+	TArray<TSubclassOf<AWeapon>> DefaultWeaponClasses; // not array yet for player inventory
+	
+	
+	// spawning player weapons
+	AWeapon* SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const;
+	
 };
