@@ -25,6 +25,8 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, Inventory);
+	DOREPLIFETIME(UCombatComponent, CurrentWeapon);
+	
 }
 
 void UCombatComponent::Initiate_CycleWeapon()
@@ -76,6 +78,13 @@ AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 	return GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnInfo);
 }
 
+void UCombatComponent::Equip(AWeapon* Weapon)
+{
+	
+	CurrentWeapon = Weapon;
+	CurrentWeapon ->AttachToOwningPawn();
+}
+
 void UCombatComponent::SpawnInventory() // spawn weapons
 {
 	AActor* OwningActor = GetOwner();
@@ -94,11 +103,11 @@ void UCombatComponent::SpawnInventory() // spawn weapons
 
 	if (Inventory.Num() > 0 && IsValid(Inventory[0]))
 	{
-		Inventory[0]->AttachToOwningPawn();
+		Equip(Inventory[0]); // equip weapons back to array 0.
 	}
 }
 
-void UCombatComponent::DestroyInventory()
+void UCombatComponent::DestroyInventory() // remove the weapons.
 {
 	for (AWeapon* Weapon : Inventory)
 	{
@@ -109,4 +118,10 @@ void UCombatComponent::DestroyInventory()
 	}
 
 	Inventory.Empty();
+}
+
+void UCombatComponent::OnRep_CurrentWeapon(AWeapon* LastWeapon)
+{
+	if (!IsValid(CurrentWeapon)) return;
+	CurrentWeapon->AttachToOwningPawn();
 }

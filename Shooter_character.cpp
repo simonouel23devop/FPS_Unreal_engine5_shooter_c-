@@ -52,6 +52,17 @@ void AShooter_character::BeginPlay()
 	Super::BeginPlay();
 	GetCharacterMovement()->MaxWalkSpeed = 900.0f;
 }
+
+void AShooter_character::BeginDestroy()
+{
+	Super::BeginDestroy();
+	
+	if (IsValid(Combat))
+	{
+		Combat->DestroyInventory();
+	}
+}
+
 // Gameplay tag for weapons grip point
 FName AShooter_character::GetWeaponAttachPoint_Implementation(const FGameplayTag& WeaponType) const
 {
