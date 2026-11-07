@@ -34,7 +34,8 @@ public:
 	
 protected:
 	
-	
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "FPS_Combat");
+    	TObjectPtr<UCombatComponent> Combat;
 	
 	
 	
@@ -53,8 +54,7 @@ private:
 	
 	
 	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCombatComponent> Combat;
+	
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> Mesh1P;

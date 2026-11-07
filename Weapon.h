@@ -19,7 +19,7 @@ public:
 	USkeletalMeshComponent* GetMesh3P() const;
 	void AttachToOwningPawn() const;
 	
-	UPROPERTY(EditAnywhere, Category = "FPS_WeaponType");
+	UPROPERTY(EditAnywhere, BlueprintReadOnly , Category = "FPS_WeaponType");
 	FGameplayTag WeaponType;
 protected:
 	virtual void BeginPlay() override;
