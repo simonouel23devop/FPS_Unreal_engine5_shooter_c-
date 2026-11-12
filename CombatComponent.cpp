@@ -26,6 +26,7 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UCombatComponent, Inventory);
 	DOREPLIFETIME(UCombatComponent, CurrentWeapon);
+	DOREPLIFETIME_CONDITION(UCombatComponent, bAiming, COND_SkipOwner);
 	
 }
 
@@ -56,13 +57,65 @@ void UCombatComponent::Initiate_ReloadWeapon()
 
 void UCombatComponent::Initiate_Aim_Pressed()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Initiate_Aim_Pressed"), false);
+	Local_Aim(true);
+
+	if (GetOwner() && GetOwner()->GetLocalRole() != ROLE_Authority)
+	{
+		Server_SetAiming(true);
+	}
 }
 
 void UCombatComponent::Initiate_Aim_Released()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Initiate_Aim_Released"), false);
+	Local_Aim(false);
+
+	if (GetOwner() && GetOwner()->GetLocalRole() != ROLE_Authority)
+	{
+		Server_SetAiming(false);
+	}
 }
+
+void UCombatComponent::ToggleAiming()
+{
+	Local_Aim(!bAiming);
+
+	if (GetOwner() && GetOwner()->GetLocalRole() != ROLE_Authority)
+	{
+		Server_SetAiming(bAiming);
+	}
+}
+
+void UCombatComponent::Server_SetAiming_Implementation(bool bNewAiming)
+{
+	Local_Aim(bNewAiming);
+	Multicast_Aim(bNewAiming);
+}
+
+void UCombatComponent::Server_Aim_Implementation(bool bPressed)
+{
+	Server_SetAiming(bPressed);
+}
+
+void UCombatComponent::Multicast_Aim_Implementation(bool bPressed)
+{
+	if (GetOwner() && GetOwner()->GetLocalRole() != ROLE_Authority)
+	{
+		Local_Aim(bPressed);
+	}
+}
+
+void UCombatComponent::OnRep_BAiming()
+{
+	Local_Aim(bAiming);
+}
+
+void UCombatComponent::Local_Aim(bool bPressed)
+{
+	bAiming = bPressed;
+}
+
+
+
 
 AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 {
@@ -78,11 +131,22 @@ AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 	return GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnInfo);
 }
 
+
+
+
 void UCombatComponent::Equip(AWeapon* Weapon)
 {
-	
+	if (!IsValid(Weapon))
+	{
+		CurrentWeapon = nullptr;
+		return;
+	}
+
 	CurrentWeapon = Weapon;
-	CurrentWeapon ->AttachToOwningPawn();
+	if (CurrentWeapon)
+	{
+		CurrentWeapon->AttachToOwningPawn();
+	}
 }
 
 void UCombatComponent::SpawnInventory() // spawn weapons
@@ -122,6 +186,10 @@ void UCombatComponent::DestroyInventory() // remove the weapons.
 
 void UCombatComponent::OnRep_CurrentWeapon(AWeapon* LastWeapon)
 {
-	if (!IsValid(CurrentWeapon)) return;
+	if (!IsValid(CurrentWeapon))
+	{
+		return;
+	}
+
 	CurrentWeapon->AttachToOwningPawn();
 }

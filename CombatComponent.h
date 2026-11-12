@@ -39,8 +39,24 @@ public:
 	void Equip(AWeapon* Weapon);
 	void SpawnInventory();
 	void DestroyInventory();
+
+	UFUNCTION(BlueprintCallable)
+	void ToggleAiming();
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetAiming(bool bNewAiming);
+
+	UFUNCTION(Server, Reliable)
+	void Server_Aim(bool bPressed);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_Aim(bool bPressed);
 	
+	UFUNCTION()
+	void OnRep_BAiming();
 	
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BAiming)
+	bool bAiming = false;
 
 protected:
 	
@@ -63,5 +79,11 @@ private:
 	
 	// spawning player weapons
 	AWeapon* SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const;
+	
+
+	void Local_Aim(bool bPressed);
+	
+	
+	
 	
 };

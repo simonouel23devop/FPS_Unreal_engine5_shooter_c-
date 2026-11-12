@@ -44,6 +44,9 @@ AShooter_character::AShooter_character()
 
 	Combat = CreateDefaultSubobject<UCombatComponent>("Combat");
 	Combat->SetIsReplicated(true);
+	
+	DefaultFieldOfView = 90.0f; // default field of view
+	
 }
 
 // Called when the game starts or when spawned
@@ -51,6 +54,10 @@ void AShooter_character::BeginPlay()
 {
 	Super::BeginPlay();
 	GetCharacterMovement()->MaxWalkSpeed = 900.0f;
+	
+	FirstPersonCamera->SetFieldOfView(DefaultFieldOfView);
+	
+	
 }
 
 void AShooter_character::BeginDestroy()
@@ -164,6 +171,7 @@ void AShooter_character::Input_Aim_Pressed()
 	}
 
 	Combat->Initiate_Aim_Pressed();
+	OnAim(true); // aiming zoom
 }
 
 void AShooter_character::Input_Aim_Released()
@@ -174,4 +182,5 @@ void AShooter_character::Input_Aim_Released()
 	}
 
 	Combat->Initiate_Aim_Released();
+	OnAim(false); // aiming not zooming
 }

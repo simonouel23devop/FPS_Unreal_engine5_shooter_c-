@@ -1,4 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
+		
 
 #pragma once
 
@@ -36,9 +37,17 @@ protected:
 	
 		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "FPS_Combat");
     	TObjectPtr<UCombatComponent> Combat;
+
+		UFUNCTION(BlueprintImplementableEvent)
+		void OnAim(bool bIsAiming);
+	
+		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FPS_Aiming")
+		float DefaultFieldOfView;
 	
 	
 	
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "FPS_Camera")
+		TObjectPtr<UCameraComponent> FirstPersonCamera;
 	
 	
 private:
@@ -52,18 +61,11 @@ private:
 	void Input_Aim_Released();
 	
 	
-	
-	
-	
-	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> Mesh1P;
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USpringArmComponent> SpringArm;
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UCameraComponent> FirstPersonCamera;
 	
 	UPROPERTY(EditAnywhere, Category= "FPS_Input");
 	TObjectPtr<UInputAction> CycleWeaponAction;
