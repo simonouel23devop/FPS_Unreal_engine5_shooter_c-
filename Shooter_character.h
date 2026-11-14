@@ -32,9 +32,15 @@ public:
     	virtual USkeletalMeshComponent* GetMesh3P_Implementation() const override;
 		virtual void BeginPlay() override;
     	virtual void BeginDestroy() override;
-	
-protected:
-	
+		
+		// fixing aim rotation up and down.
+		UFUNCTION(BlueprintCallable)
+		FRotator GetFixedAimRotation() const;
+
+		UPROPERTY(BlueprintReadOnly, Category = "FPS_FABRIK")
+		FTransform FABRIK_SocketTransform;
+
+protected:	
 		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "FPS_Combat");
     	TObjectPtr<UCombatComponent> Combat;
 
@@ -44,7 +50,7 @@ protected:
 		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FPS_Aiming")
 		float DefaultFieldOfView;
 	
-	
+
 	
 		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "FPS_Camera")
 		TObjectPtr<UCameraComponent> FirstPersonCamera;
@@ -60,6 +66,7 @@ private:
 	void Input_Aim_Pressed();
 	void Input_Aim_Released();
 	
+	void CalculateFABRIKSocketTransform();
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> Mesh1P;

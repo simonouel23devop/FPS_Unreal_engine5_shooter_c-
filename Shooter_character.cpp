@@ -45,7 +45,7 @@ AShooter_character::AShooter_character()
 	Combat = CreateDefaultSubobject<UCombatComponent>("Combat");
 	Combat->SetIsReplicated(true);
 	
-	DefaultFieldOfView = 90.0f; // default field of view
+	DefaultFieldOfView = 90.0f; // default field of view when aiming
 	
 }
 
@@ -90,12 +90,46 @@ USkeletalMeshComponent* AShooter_character::GetMesh3P_Implementation() const
 	return GetMesh();
 }
 
+FRotator AShooter_character::GetFixedAimRotation() const
+{
+	FRotator AimRotation = GetBaseAimRotation();
+	if (AimRotation.Pitch > 90.0f && !IsLocallyControlled())
+	{
+		// Map pitch from [270, 360) to [-90, 0]. fix aim rotation up and down
+		const FVector2D InRange(270.0f, 360.0f);
+		const FVector2D OutRange(-90.0f, 0.0f);
+		AimRotation.Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimRotation.Pitch);
+	}
 
-// Called every frame
+		return AimRotation;
+}
+
+
+// Called every frame tick in real time.
 void AShooter_character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	CalculateFABRIKSocketTransform();
+	
 }
+
+void AShooter_character::CalculateFABRIKSocketTransform()
+{
+	if (IsValid(Combat) && IsValid(Combat->CurrentWeapon) && IsValid(Combat->CurrentWeapon->GetMesh3P()))
+    	{
+    		FABRIK_SocketTransform = Combat->CurrentWeapon->GetMesh3P()->GetSocketTransform(FName("FABRIK_Socket"), RTS_World);
+    		FVector OutLocation;
+    		FRotator OutRotation;
+    		GetMesh()->TransformToBoneSpace(FName("hand_r"), FABRIK_SocketTransform.GetLocation(), FABRIK_SocketTransform.GetRotation().Rotator(), OutLocation, OutRotation);
+    		FABRIK_SocketTransform.SetLocation(OutLocation);
+    		FABRIK_SocketTransform.SetRotation(OutRotation.Quaternion());
+    		
+    		
+    	}
+	
+	
+}
+
 
 // Called to bind functionality to input
 void AShooter_character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -184,3 +218,4 @@ void AShooter_character::Input_Aim_Released()
 	Combat->Initiate_Aim_Released();
 	OnAim(false); // aiming not zooming
 }
+

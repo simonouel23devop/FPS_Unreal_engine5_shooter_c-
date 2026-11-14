@@ -57,11 +57,12 @@ public:
 	
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_BAiming)
 	bool bAiming = false;
-
+	
+	UPROPERTY(Transient, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeapon)
+	TObjectPtr<AWeapon> CurrentWeapon;
 protected:
 	
-		UPROPERTY(Transient, BlueprintReadOnly, ReplicatedUsing = OnRep_CurrentWeapon)
-    	TObjectPtr<AWeapon> CurrentWeapon;
+		
 
 private:
 
