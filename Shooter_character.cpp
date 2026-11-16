@@ -5,8 +5,10 @@
 #include "CombatComponent.h"
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
+#include "ShooterTypes.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 // Sets default values
 AShooter_character::AShooter_character()
@@ -46,7 +48,7 @@ AShooter_character::AShooter_character()
 	Combat->SetIsReplicated(true);
 	
 	DefaultFieldOfView = 90.0f; // default field of view when aiming
-	
+	TurningStatus = ETurningInPlace::NotTurning;
 }
 
 // Called when the game starts or when spawned
@@ -56,6 +58,9 @@ void AShooter_character::BeginPlay()
 	GetCharacterMovement()->MaxWalkSpeed = 900.0f;
 	
 	FirstPersonCamera->SetFieldOfView(DefaultFieldOfView);
+	StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+	
+	
 	
 	
 }
@@ -99,9 +104,16 @@ FRotator AShooter_character::GetFixedAimRotation() const
 		const FVector2D InRange(270.0f, 360.0f);
 		const FVector2D OutRange(-90.0f, 0.0f);
 		AimRotation.Pitch = FMath::GetMappedRangeValueClamped(InRange, OutRange, AimRotation.Pitch);
+		
+	
 	}
 
-		return AimRotation;
+	return FRotator(AimRotation.Pitch, AimRotation.Yaw, 0.f);
+}
+
+bool AShooter_character::HasCurrentWeapons() const
+{
+	return IsValid(Combat)&& Combat->CurrentWeapon != nullptr;
 }
 
 
@@ -110,6 +122,7 @@ void AShooter_character::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	CalculateFABRIKSocketTransform();
+	CalcuteTurnInPlaceParameters(DeltaTime);
 	
 }
 
@@ -124,12 +137,72 @@ void AShooter_character::CalculateFABRIKSocketTransform()
     		FABRIK_SocketTransform.SetLocation(OutLocation);
     		FABRIK_SocketTransform.SetRotation(OutRotation.Quaternion());
     		
-    		
     	}
-	
+
 	
 }
 
+void AShooter_character::CalcuteTurnInPlaceParameters(float DeltaTime)
+{
+	const FVector Velocity = GetVelocity();
+	const FVector HorizontalVelocity = FVector(Velocity.X, Velocity.Y, 0.f);
+	const float Speed = HorizontalVelocity.Size();
+	const bool bIsInAir = GetCharacterMovement()->IsFalling();
+
+	if (Speed == 0.f && !bIsInAir)
+	{
+		const FRotator CurrentAimRotation(0.f, GetBaseAimRotation().Yaw, 0.f);
+		const FRotator DeltaAimRotation = UKismetMathLibrary::NormalizedDeltaRotator(CurrentAimRotation, StartingAimRotation);
+		AO_Yaw = DeltaAimRotation.Yaw;
+
+		if (TurningStatus == ETurningInPlace::NotTurning)
+		{
+			InterpAO_Yaw = AO_Yaw;
+		}
+
+		
+		
+		TurnInPlace(DeltaTime);
+	}
+	else
+	{
+		StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		AO_Yaw = 0.f;
+		InterpAO_Yaw = 0.f;
+		const FRotator AimRotation = GetBaseAimRotation();
+		const FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(GetVelocity());
+		MovementOffsetYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
+		TurningStatus = ETurningInPlace::NotTurning;
+	}
+	
+	AO_Yaw *= -1.f;
+	
+}
+
+void AShooter_character::TurnInPlace(float DeltaTime)
+{
+	if (AO_Yaw > 90.f)
+	{
+		TurningStatus = ETurningInPlace::Right;
+	}
+	else if (AO_Yaw < -90.f)
+	{
+		TurningStatus = ETurningInPlace::Left;
+	}
+
+	if (TurningStatus == ETurningInPlace::NotTurning)
+	{
+		InterpAO_Yaw = FMath::FInterpTo(InterpAO_Yaw, 0.f, DeltaTime, 4.0f);
+		AO_Yaw = InterpAO_Yaw;
+
+		if (FMath::Abs(AO_Yaw) < 5.f)
+		{
+			AO_Yaw = 0.f;
+			InterpAO_Yaw = 0.f;
+			StartingAimRotation = FRotator(0.f, GetBaseAimRotation().Yaw, 0.f);
+		}
+	}
+}
 
 // Called to bind functionality to input
 void AShooter_character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -218,4 +291,3 @@ void AShooter_character::Input_Aim_Released()
 	Combat->Initiate_Aim_Released();
 	OnAim(false); // aiming not zooming
 }
-

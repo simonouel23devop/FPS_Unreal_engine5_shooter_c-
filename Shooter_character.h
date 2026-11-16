@@ -6,6 +6,7 @@
 #include "CoreMinimal.h"
 #include "PlayerInterface.h"
 #include "GameFramework/Character.h"
+#include "ShooterTypes.h"
 #include "Shooter_character.generated.h"
 
 class UInputAction;
@@ -39,6 +40,11 @@ public:
 
 		UPROPERTY(BlueprintReadOnly, Category = "FPS_FABRIK")
 		FTransform FABRIK_SocketTransform;
+	
+	
+		UFUNCTION(BlueprintPure, Category = "FPS_Combat")
+		bool HasCurrentWeapons() const;
+	
 
 protected:	
 		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "FPS_Combat");
@@ -50,10 +56,19 @@ protected:
 		UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "FPS_Aiming")
 		float DefaultFieldOfView;
 	
-
-	
 		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category= "FPS_Camera")
 		TObjectPtr<UCameraComponent> FirstPersonCamera;
+	
+		UPROPERTY(BlueprintReadOnly, Category= "FPS_TurnInPlace")
+    	float AO_Yaw;
+	
+		UPROPERTY(BlueprintReadOnly, Category= "FPS_Strafing")
+		float MovementOffsetYaw;
+	
+		UPROPERTY(BlueprintReadOnly, Category = "FPS_TurnInPlace")
+		ETurningInPlace TurningStatus;
+	
+	
 	
 	
 private:
@@ -67,6 +82,17 @@ private:
 	void Input_Aim_Released();
 	
 	void CalculateFABRIKSocketTransform();
+	
+	void CalcuteTurnInPlaceParameters(float DeltaTime);
+	
+	void TurnInPlace(float DeltaTime);
+	
+	
+	FRotator StartingAimRotation;
+	float InterpAO_Yaw;
+	
+	
+	
 	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> Mesh1P;
