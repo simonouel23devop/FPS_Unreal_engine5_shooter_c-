@@ -44,9 +44,6 @@ private:
 	UPROPERTY(EditAnywhere, Category= "FPS_Input");
 	float NormalWalkSpeed = 900.0f;
 
-	UPROPERTY(EditAnywhere, Category= "FPS_Input");
-	float RunSpeed = 1200.0f;
-
 	void Input_Crouch();
 	void Input_Jump();
 	void Input_StopJumping();

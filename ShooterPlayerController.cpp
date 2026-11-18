@@ -87,8 +87,6 @@ void AShooterPlayerController::Input_Run()
 		return;
 	}
 
-	UCharacterMovementComponent* MovementComponent = ControlledCharacter->GetCharacterMovement();
-	MovementComponent->MaxWalkSpeed = RunSpeed;
 	if (UCombatComponent* CombatComponent = ControlledCharacter->FindComponentByClass<UCombatComponent>())
 	{
 		CombatComponent->Initiate_RunAction();
@@ -97,7 +95,17 @@ void AShooterPlayerController::Input_Run()
 
 void AShooterPlayerController::Input_StopRunning()
 {
-	if (ACharacter* ControlledCharacter = GetCharacter())
+	ACharacter* ControlledCharacter = GetCharacter();
+	if (!IsValid(ControlledCharacter))
+	{
+		return;
+	}
+
+	if (UCombatComponent* CombatComponent = ControlledCharacter->FindComponentByClass<UCombatComponent>())
+	{
+		CombatComponent->End_RunAction();
+	}
+	else
 	{
 		ControlledCharacter->GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 	}

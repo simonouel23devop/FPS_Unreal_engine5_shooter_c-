@@ -4,6 +4,8 @@
 #include "CombatComponent.h"
 
 #include "Engine/Engine.h"
+#include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 
 UCombatComponent::UCombatComponent()
@@ -27,7 +29,6 @@ void UCombatComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(UCombatComponent, Inventory);
 	DOREPLIFETIME(UCombatComponent, CurrentWeapon);
 	DOREPLIFETIME_CONDITION(UCombatComponent, bAiming, COND_SkipOwner);
-	
 }
 
 void UCombatComponent::Initiate_CycleWeapon()
@@ -37,7 +38,34 @@ void UCombatComponent::Initiate_CycleWeapon()
 
 void UCombatComponent::Initiate_RunAction()
 {
+	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	{
+		OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed = 2000.0f;
+		Server_SetMaxWalkSpeed(2000.0f);
+	}
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Initiate_RunAction"), false);
+}
+
+void UCombatComponent::End_RunAction()
+{
+	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	{
+		OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed = 900.0f;
+		Server_SetMaxWalkSpeed(900.0f);
+	}
+}
+
+void UCombatComponent::Server_SetMaxWalkSpeed_Implementation(float NewSpeed)
+{
+	if (NewSpeed != 900.0f && NewSpeed != 2000.0f)
+	{
+		return;
+	}
+
+	if (ACharacter* OwnerCharacter = Cast<ACharacter>(GetOwner()))
+	{
+		OwnerCharacter->GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+	}
 }
 
 void UCombatComponent::Initiate_FireWeapons_Pressed()
@@ -115,8 +143,6 @@ void UCombatComponent::Local_Aim(bool bPressed)
 }
 
 
-
-
 AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 {
 	AActor* OwningActor = GetOwner();
@@ -130,8 +156,6 @@ AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 
 	return GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnInfo);
 }
-
-
 
 
 void UCombatComponent::Equip(AWeapon* Weapon)
