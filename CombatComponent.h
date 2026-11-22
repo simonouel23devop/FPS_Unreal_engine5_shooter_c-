@@ -83,6 +83,12 @@ private:
 	// spawning player weapons
 	AWeapon* SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const;
 
-
+	UFUNCTION(Server, Reliable)
+	void Server_FireWeapon();
+	
 	void Local_Aim(bool bPressed);
+	void LocalFireWeapon();
+	UFUNCTION(NetMulticast, Reliable)
+	void Multicast_FireWeapon();
+	
 };

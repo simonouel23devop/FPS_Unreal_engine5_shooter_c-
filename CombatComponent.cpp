@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "PlayerInterface.h"
 
 UCombatComponent::UCombatComponent()
 {
@@ -70,12 +71,11 @@ void UCombatComponent::Server_SetMaxWalkSpeed_Implementation(float NewSpeed)
 
 void UCombatComponent::Initiate_FireWeapons_Pressed()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Initiate_FireWeapons_Pressed"), false);
+	LocalFireWeapon();
 }
 
 void UCombatComponent::Initiate_FireWeapons_Released()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Cyan, TEXT("Initiate_FireWeapons_Released"), false);
 }
 
 void UCombatComponent::Initiate_ReloadWeapon()
@@ -142,6 +142,45 @@ void UCombatComponent::Local_Aim(bool bPressed)
 	bAiming = bPressed;
 }
 
+void UCombatComponent::LocalFireWeapon()
+{
+	ensure(IsValid(WeaponData));
+	UAnimMontage* Montage1P = WeaponData->FirstPersonMontages.FindChecked(CurrentWeapon->WeaponType).FireMontage;
+
+	// play the fire weapon montage for the first-person mesh
+	USkeletalMeshComponent* Mesh1P = IPlayerInterface::Execute_GetMesh1P(GetOwner());
+	if (IsValid(Montage1P) && IsValid(Mesh1P))
+	{
+		Mesh1P->GetAnimInstance()->Montage_Play(Montage1P);
+	}
+
+	Server_FireWeapon();
+}
+
+void UCombatComponent::Multicast_FireWeapon_Implementation()
+{
+	APawn* OwningPawn = Cast<APawn>(GetOwner());
+	if (OwningPawn->IsLocallyControlled())
+	{
+		// do local stuff.
+	}
+	else
+	{
+		
+		ensure(IsValid(WeaponData));
+		UAnimMontage* Montage3P = WeaponData->ThirdPersonMontages.FindChecked(CurrentWeapon->WeaponType).FireMontage;
+
+		// play the fire weapon montage for the first-person mesh
+		USkeletalMeshComponent* Mesh3P = IPlayerInterface::Execute_GetMesh3P(GetOwner());
+		if (IsValid(Montage3P) && IsValid(Mesh3P))
+		{
+			Mesh3P->GetAnimInstance()->Montage_Play(Montage3P);
+		}
+		
+		
+	}
+}
+
 
 AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 {
@@ -155,6 +194,11 @@ AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	return GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnInfo);
+}
+
+void UCombatComponent::Server_FireWeapon_Implementation()
+{
+	Multicast_FireWeapon();
 }
 
 
