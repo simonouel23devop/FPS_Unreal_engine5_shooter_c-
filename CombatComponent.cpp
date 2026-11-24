@@ -13,6 +13,9 @@ UCombatComponent::UCombatComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	SetIsReplicatedByDefault(true);
+	
+	TraceLength = 200000.0f;
+	
 }
 
 
@@ -144,6 +147,7 @@ void UCombatComponent::Local_Aim(bool bPressed)
 
 void UCombatComponent::LocalFireWeapon()
 {
+	if (!IsValid(CurrentWeapon)) return;
 	ensure(IsValid(WeaponData));
 	UAnimMontage* Montage1P = WeaponData->FirstPersonMontages.FindChecked(CurrentWeapon->WeaponType).FireMontage;
 
@@ -153,7 +157,10 @@ void UCombatComponent::LocalFireWeapon()
 	{
 		Mesh1P->GetAnimInstance()->Montage_Play(Montage1P);
 	}
-
+	
+	FHitResult Hit;
+	CurrentWeapon->WeaponTrace(Hit,TraceLength);
+	
 	Server_FireWeapon();
 }
 

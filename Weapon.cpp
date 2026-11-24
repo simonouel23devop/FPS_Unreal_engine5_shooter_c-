@@ -3,6 +3,10 @@
 
 #include "Weapon.h"
 
+#include "../FPS.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "KismetTraceUtils.h"
 #include "PlayerInterface.h"
 #include "Camera/CameraComponent.h"
 
@@ -35,6 +39,7 @@ AWeapon::AWeapon()
 	Mesh3P->SetHiddenInGame(true);
 	
 	AimFieldOfView = 65.0F;
+	TraceRadius = 5.f;
 }
 
 void AWeapon::OnRep_Instigator()
@@ -85,6 +90,51 @@ void AWeapon::AttachToOwningPawn() const // attach grip point weapons to player
 	
 }
 
+void AWeapon::WeaponTrace(FHitResult& OutHit, float TranceLength) const
+{
+	FCollisionQueryParams QueryParams;
+	QueryParams.bReturnPhysicalMaterial = true;
+	QueryParams.AddIgnoredActor(GetOwner());
+
+	FCollisionResponseParams ResponseParams;
+	ResponseParams.CollisionResponse.SetAllChannels(ECR_Ignore);
+	ResponseParams.CollisionResponse.SetResponse(ECC_Pawn, ECR_Block);
+	ResponseParams.CollisionResponse.SetResponse(ECC_WorldStatic, ECR_Block);
+	ResponseParams.CollisionResponse.SetResponse(ECC_WorldDynamic, ECR_Block);
+	ResponseParams.CollisionResponse.SetResponse(ECC_PhysicsBody, ECR_Block);
+
+	ensure(GetInstigator());
+	if (APlayerController* PC = Cast<APlayerController>(GetInstigator()->GetController()); IsValid(PC))
+	{
+		FVector EyesWorldLocation;
+		FRotator EyesWorldRotation;
+		PC->GetActorEyesViewPoint(EyesWorldLocation, EyesWorldRotation);
+		const FVector EyesWorldDirection = UKismetMathLibrary::GetForwardVector(EyesWorldRotation);
+		const FVector Start = EyesWorldLocation;
+		const FVector End = Start + EyesWorldDirection * TranceLength;
+		const bool bHit = GetWorld()->SweepSingleByChannel(
+			OutHit,
+			Start,
+			End,
+			FQuat::Identity,
+			FPSTraceChannels::ECC_Weapon,
+			FCollisionShape::MakeSphere(TraceRadius),
+			QueryParams,
+			ResponseParams);
+		DrawDebugSphereTraceSingle(
+			GetWorld(),
+			Start,
+			End,
+			TraceRadius,
+			EDrawDebugTrace::ForDuration,
+			bHit,
+			OutHit,
+			FColor::Green,
+			FColor::Red,
+			5.0f);
+	}
+}
+
 void AWeapon::SetMeshVisibilies(APawn* OwningPawn) const
 {
 	if (OwningPawn->IsLocallyControlled())
@@ -102,5 +152,3 @@ void AWeapon::SetMeshVisibilies(APawn* OwningPawn) const
 	
 	
 }
-
-

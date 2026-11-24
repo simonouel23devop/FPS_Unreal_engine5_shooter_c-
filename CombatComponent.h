@@ -68,7 +68,8 @@ public:
 
 protected:
 
-
+	UPROPERTY(EditDefaultsOnly, Category = "FPS_Weapon")
+	float TraceLength;
 private:
 	UFUNCTION()
 	void OnRep_CurrentWeapon(AWeapon* LastWeapon);

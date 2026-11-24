@@ -18,12 +18,15 @@ public:
 	USkeletalMeshComponent* GetMesh1P() const;
 	USkeletalMeshComponent* GetMesh3P() const;
 	void AttachToOwningPawn() const;
-	
+	void WeaponTrace(FHitResult& OutHit, float TranceLength) const; 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly , Category = "FPS_WeaponType");
 	FGameplayTag WeaponType;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "FPS_Aiming");
 	float AimFieldOfView;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "FPS_Trace");
+	float TraceRadius;
 	
 	
 protected:
