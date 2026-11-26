@@ -85,11 +85,11 @@ private:
 	AWeapon* SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const;
 
 	UFUNCTION(Server, Reliable)
-	void Server_FireWeapon();
+	void Server_FireWeapon(const FHitResult& Hit);
 	
 	void Local_Aim(bool bPressed);
 	void LocalFireWeapon();
 	UFUNCTION(NetMulticast, Reliable)
-	void Multicast_FireWeapon();
+	void Multicast_FireWeapon(const FHitResult& Hit);
 	
 };

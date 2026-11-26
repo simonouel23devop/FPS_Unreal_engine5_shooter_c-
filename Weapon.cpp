@@ -64,6 +64,14 @@ USkeletalMeshComponent* AWeapon::GetMesh3P() const // for mesh3p
 	
 }
 
+
+void AWeapon::Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNormal,
+	TEnumAsByte<EPhysicalSurface> ImpactSurfaceType, bool bIsFirstPerson)
+{
+	// local fire stuff...
+	FireEffects(ImpactPoint, ImpactNormal, ImpactSurfaceType, bIsFirstPerson);
+}
+
 void AWeapon::BeginPlay()
 {
 	Super::BeginPlay();
@@ -121,6 +129,7 @@ void AWeapon::WeaponTrace(FHitResult& OutHit, float TranceLength) const
 			FCollisionShape::MakeSphere(TraceRadius),
 			QueryParams,
 			ResponseParams);
+		/* // debug line trace
 		DrawDebugSphereTraceSingle(
 			GetWorld(),
 			Start,
@@ -131,7 +140,7 @@ void AWeapon::WeaponTrace(FHitResult& OutHit, float TranceLength) const
 			OutHit,
 			FColor::Green,
 			FColor::Red,
-			5.0f);
+			5.0f); */
 	}
 }
 

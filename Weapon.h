@@ -28,17 +28,23 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly , Category = "FPS_Trace");
 	float TraceRadius;
 	
-	
+	void Local_Fire(const FVector& ImpactPoint, const FVector& ImpactNormal, TEnumAsByte<EPhysicalSurface> ImpactSurfaceType, bool bIsFirstPerson);
+
+
+
+
 protected:
 	virtual void BeginPlay() override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void FireEffects(const FVector& ImpactPoint, const FVector& ImpactNormal, EPhysicalSurface ImpactSurfaceType, bool bIsFirstPerson);
 	
-
 	
 	
 	
 private:
 	
+
 	// weapons mesh first person view
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<USkeletalMeshComponent> Mesh1P;

@@ -160,32 +160,49 @@ void UCombatComponent::LocalFireWeapon()
 	
 	FHitResult Hit;
 	CurrentWeapon->WeaponTrace(Hit,TraceLength);
+	EPhysicalSurface ImpactSurfaceType = Hit.PhysMaterial.IsValid(false) ? Hit.PhysMaterial->SurfaceType.GetValue()
+	: SurfaceType1;
+	CurrentWeapon->Local_Fire(Hit.ImpactPoint, Hit.ImpactNormal, ImpactSurfaceType, true);
 	
-	Server_FireWeapon();
+	
+	
+	Server_FireWeapon(Hit);
 }
 
-void UCombatComponent::Multicast_FireWeapon_Implementation()
+void UCombatComponent::Multicast_FireWeapon_Implementation(const FHitResult& Hit)
 {
 	APawn* OwningPawn = Cast<APawn>(GetOwner());
+	if (!IsValid(OwningPawn) || !IsValid(CurrentWeapon))
+	{
+		return;
+	}
+
 	if (OwningPawn->IsLocallyControlled())
 	{
-		// do local stuff.
+		return;
 	}
-	else
-	{
-		
-		ensure(IsValid(WeaponData));
-		UAnimMontage* Montage3P = WeaponData->ThirdPersonMontages.FindChecked(CurrentWeapon->WeaponType).FireMontage;
 
-		// play the fire weapon montage for the first-person mesh
-		USkeletalMeshComponent* Mesh3P = IPlayerInterface::Execute_GetMesh3P(GetOwner());
-		if (IsValid(Montage3P) && IsValid(Mesh3P))
-		{
-			Mesh3P->GetAnimInstance()->Montage_Play(Montage3P);
-		}
-		
-		
+	if (GetNetMode() == NM_DedicatedServer)
+	{
+		return;
 	}
+
+	if (IsValid(WeaponData))
+	{
+		if (const FMontageData* MontageData = WeaponData->ThirdPersonMontages.Find(CurrentWeapon->WeaponType))
+		{
+			USkeletalMeshComponent* Mesh3P = IPlayerInterface::Execute_GetMesh3P(GetOwner());
+			if (IsValid(MontageData->FireMontage) && IsValid(Mesh3P) && IsValid(Mesh3P->GetAnimInstance()))
+			{
+				Mesh3P->GetAnimInstance()->Montage_Play(MontageData->FireMontage);
+			}
+		}
+	}
+
+	const EPhysicalSurface ImpactSurfaceType = Hit.PhysMaterial.IsValid(false)
+		? Hit.PhysMaterial->SurfaceType.GetValue()
+		: SurfaceType1;
+	CurrentWeapon->Local_Fire(Hit.ImpactPoint, Hit.ImpactNormal, ImpactSurfaceType, false);
 }
 
 
@@ -203,9 +220,9 @@ AWeapon* UCombatComponent::SpawnWeapon(TSubclassOf<AWeapon> WeaponClass) const
 	return GetWorld()->SpawnActor<AWeapon>(WeaponClass, SpawnInfo);
 }
 
-void UCombatComponent::Server_FireWeapon_Implementation()
+void UCombatComponent::Server_FireWeapon_Implementation(const FHitResult& Hit)
 {
-	Multicast_FireWeapon();
+	Multicast_FireWeapon(Hit);
 }
 
 
