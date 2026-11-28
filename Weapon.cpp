@@ -129,6 +129,14 @@ void AWeapon::WeaponTrace(FHitResult& OutHit, float TranceLength) const
 			FCollisionShape::MakeSphere(TraceRadius),
 			QueryParams,
 			ResponseParams);
+		
+		// world origin shot bullet dont have constraints.
+		if (!bHit)
+		{
+			OutHit.ImpactPoint = End;
+		}
+		
+		
 		/* // debug line trace
 		DrawDebugSphereTraceSingle(
 			GetWorld(),
